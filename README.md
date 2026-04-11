@@ -1,6 +1,5 @@
 # Multiple Sequence Alignment
 
-
 wersja 1.0. 1 21. 03 .20 26
 
 ## 1. Wprowadzenie do problemu dopasowania wielu sekwencji
@@ -43,7 +42,6 @@ sekwencji istnieją klasyczne algorytmy dynamiczne wyznaczające rozwiązanie op
 wielu sekwencji problem staje się znacznie trudniejszy obliczeniowo i w praktyce wymaga stosowania
 heurystyk oraz metod przybliżonych.
 
-
 Z tego powodu w bioinformatyce ogromne znaczenie mają algorytmy, które nie gwarantują optimum
 globalnego, ale potrafią znaleźć dobre dopasowania w rozsądnym czasie. Wśród typowych podejść
 znajdują się metody progresywne, strategie oparte na profilach, algorytmy iteracyjne oraz różne
@@ -81,15 +79,14 @@ Należy teraz jakoś ocenić jakość tego dopasowania. Potrzebujemy częściowy
 - match, +1 punkt, _np. A z A, G z G, itd._
 - mismatch, -1 punkt, _np. A z G_
 - gapopen, gopen = -2 punkty – „ _otwierający” znak – , np. wiersze 3 i 4 z pierwszej kolumny, ale też_
-    **_druga_** _kolumna wiersza w2 oraz_ **_szósta_** _kolumna dla wiersza w4 – to są „otwarcia” przerwy_
-    _pomiędzy nukleotydami_
+  **_druga_** _kolumna wiersza w2 oraz_ **_szósta_** _kolumna dla wiersza w4 – to są „otwarcia” przerwy_
+  _pomiędzy nukleotydami_
 - gapextend, gext = -1 punkt, _w przykładzie to druga, trzecia i czwarta kolumna wiersza w_
 - gap vs gap: 0 (zero) punktów
 
 No dobrze, ale jak oceniamy? Ocena za całe dopasowanie to suma ocen częściowych każdy-z-
 każdym, określa tą liczbę dwumian Newtona, w naszym przypadku „4 na 2”, gdzie 4 to liczba wierszy.
 Musimy ocenić dopasowania w1-w2 potem w1-w3, w1-w4, w2-w3, w2-w4 i finalnie w3-w4.
-
 
 **Ocena za dopasowania w1 z w2:** ( **A G T C G T A G** oraz **A – T C G T C G** )
 
@@ -104,6 +101,7 @@ match T-T: +
 mismatch A-C: - 1
 match G-G: +
 ```
+
 Czyli suma w1-w2 to: +1 – 2 +1 +1 +1 +1 - 1 +1 = 3.
 
 **Ocena za dopasowania w1 z w3:** ( **A G T C G T A G** oraz **– – – – G T A G** )
@@ -119,6 +117,7 @@ match T-T : +
 match A-A : +
 match G-G : + 1
 ```
+
 Suma w1-w3: - 2 - 1 - 1 - 1 +1 +1 +1 +1 = -5 + 4 = - 1
 
 **Ocena za dopasowania w1 z w4:** ( **A G T C G T A G** oraz **– G T A G – A G** )
@@ -134,6 +133,7 @@ gopen T i „–” : -2 punkty
 match A-A: +
 match G-G: + 1
 ```
+
 Suma w1-w4: - 2 +1 +1 -1 +1 - 2 +1 +1 = 0
 
 **Ocena za dopasowania w2 z w3:** ( **A – T C G T C G** oraz **– – – – G T A G** )
@@ -149,6 +149,7 @@ match T-T: +
 mismatch C-A: - 1
 match G-G: +
 ```
+
 Suma w2-w3: - 2 +0 - 2 - 1 +1 +1 - 1 +1 = - 3
 
 **Ocena za dopasowania w2 z w4:** ( **A – T C G T C G** oraz **– G T A G – A G** )
@@ -164,6 +165,7 @@ gopen T i „–” : -2 punkty
 mismatch C-A: - 1
 match G-G: +
 ```
+
 Suma w2-w4: - 2 - 2 +1 -1 +1 - 2 - 1 +1 = - 5
 
 **Ocena za dopasowania w3 z w4:** ( **– – – – G T A G** oraz **– G T A G – A G** )
@@ -179,10 +181,10 @@ gopen T i „–” : -2 punkty
 match A-A: +
 match G-G: +
 ```
+
 Suma w3-w4: +0 - 2 - 1 - 1 +1 - 2 +1 +1 = - 3
 
 Ocena calkowita dopasowania: **SP** = 3 – 1 + 0 – 3 – 5 – 3 = **- 9**
-
 
 Czy to dużo czy to mało? Nie wiemy, możemy co najwyżej wymyślić inne dopasowania i porównywać
 wyniki. Naszym celem jest oczywiście maksymalizacja, czyli najlepsze dopasowania to te z
@@ -213,7 +215,8 @@ P - 1 - 3 - 2 - 2 7 - 1 - 1 - 4
 S 1 - 1 0 1 - 1 4 1 - 4
 T 0 - 1 - 2 0 - 1 1 5 - 4
 ```
-**- -**^4 **-**^4 **-**^4 **-**^4 **-**^4 **-**^4 **-**^4 
+
+**- -**^4 **-**^4 **-**^4 **-**^4 **-**^4 **-**^4 **-**^4
 
 **Przykład:** 5 sekwencji, przykładowe dopasowanie.
 
@@ -226,7 +229,6 @@ T 0 - 1 - 2 0 - 1 1 5 - 4
 #### ANCGTNPT w4: A – N C G T – – N P – T
 
 #### GATAPS w5: – G – – A T A – – P S –
-
 
 Pierwsze cztery dopasowania z (^52 )= 10 (każdy wiersz z każdym):
 
@@ -243,12 +245,14 @@ T-T: +
 A-A: +
 G-G: +
 ```
+
 ```
 gap N i „–” : -4 punkty
 P-P: +
 S-S: +
 T-T: +
 ```
+
 Czyli suma w1-w2: +4 +0 +5 +9 +6 +5 +4 +6 -4 +7 +4 +5 = **51**
 
 **Dopasowanie w1 z w3:** ( A G T C G T A G N P S T oraz – G T P G – A G N – S T)
@@ -264,12 +268,14 @@ gap T i „–” : -4 punkty
 A-A: +
 G-G: +
 ```
+
 ```
 N-N: +
 gap P i „–” : -4 punkty
 S-S: +
 T-T: +
 ```
+
 Czyli suma w1-w3: - 4 +6 +5 -3 +6 -4 +4 +6 +6 -4 +4 +5 = **27**
 
 **Dopasowanie w1 z w4:** ( A G T C G T A G N P S T oraz A – N C G T – – N P – T)
@@ -285,12 +291,14 @@ T-T: +
 gap A i „–” : -4 punkty
 gap G i „–” : -4 punkty
 ```
+
 ```
 N-N: +
 P-P: +
 gap S i „–” : -4 punkty
 T-T: +
 ```
+
 Czyli suma w1-w4: +4 -4 +0 +9 +6 +5 - 4 - 4 +6 +7 -4 +5 = **26**
 
 **Dopasowanie w1 z w5:** ( A G T C G T A G N P S T oraz – G – – A T A – – P S – )
@@ -306,38 +314,39 @@ T-T: +
 A-A: +
 gap G i „–” : -4 punkty
 ```
+
 ```
 gap N i „–” : -4 punkty
 P-P: +
 S-S: +
 gap T i „–” : -4 punkty
 ```
+
 Czyli suma w1-w5: - 4 +6 - 4 - 4 +0 +5 +4 - 4 - 4 +7 +4 -4 = **2**
 
 **Pozostałe pary wierszy:**
 
 - suma **w2-w3** = **11**
 - suma **w2-w4** = **16**
-    - suma **w2-w5** = **0**
-    - suma **w3-w4** = **- 14**
-       - suma **w3-w5** = **- 14**
-       - suma **w4-w5** = **- 20**
+  - suma **w2-w5** = **0**
+  - suma **w3-w4** = **- 14**
+    - suma **w3-w5** = **- 14**
+    - suma **w4-w5** = **- 20**
 
 **Wszystkie “części” dopasowania** (dla 5 sekwencji mamy łącznie 10 par):
 
 - w1-w2 = 51
 - w1-w3 = 27
 - w1-w4 = 26
-    - w1-w5 = 2
-    - w2-w3 = 11
-    - w2-w4 = 16
-       - w2-w5 = 0
-       - w3-w4 = - 14
-       - w3-w5 = - 14
-          - w4-w5 = - 20
+  - w1-w5 = 2
+  - w2-w3 = 11
+  - w2-w4 = 16
+    - w2-w5 = 0
+    - w3-w4 = - 14
+    - w3-w5 = - 14
+      - w4-w5 = - 20
 
 Zatem wartość całego dopasowania wynosi: **SP = 51 + 27 + 26 + 2 + 11 + 16 + 0 - 14 - 14 - 20 = 85**
-
 
 #### A teraz przyjmiemy: gopen = -12, gext = - 1
 
@@ -354,12 +363,14 @@ T-T: +
 A-A: +
 G-G: +
 ```
+
 ```
 gopen N i „–” : -12 punktów
 P-P: +
 S-S: +
 T-T: +
 ```
+
 Czyli suma w1-w2: +4 +0 +5 +9 +6 +5 +4 +6 -12 +7 +4 +5 = **43**
 
 **Dopasowanie w1 z w3:** ( A G T C G T A G N P S T oraz – G T P G – A G N – S T)
@@ -375,12 +386,14 @@ gopen T i „–” : -12 punktów
 A-A: +
 G-G: +
 ```
+
 ```
 N-N: +
 gopen P i „–” : -12 punktów
 S-S: +
 T-T: +
 ```
+
 Czyli suma w1-w3: - 12 +6 +5 -3 +6 -12 +4 +6 +6 -12 +4 +5 = **3**
 
 **Dopasowanie w1 z w4:** ( A G T C G T A G N P S T oraz A – N C G T – – N P – T)
@@ -396,12 +409,14 @@ T-T: +
 gopen A i „–” : -12 punktów
 gext G i „–” : -1 punkt
 ```
+
 ```
 N-N: +
 P-P: +
 gopen S i „–” : -12 punktów
 T-T: +
 ```
+
 Czyli suma w1-w4: +4 -12 +0 +9 +6 +5 - 12 - 1 +6 +7 -12 +5 = **5**
 
 **Dopasowanie w1 z w5:** ( A G T C G T A G N P S T oraz – G – – A T A – – P S – )
@@ -417,12 +432,14 @@ T-T: +
 A-A: +
 gopen G i „–” : -12 punktów
 ```
+
 ```
 gext N i „–” : -1 punkt
 P-P: +
 S-S: +
 gopen T i „–” : -12 punktów
 ```
+
 Czyli suma w1-w5: - 12 +6 - 12 - 1 +0 +5 +4 - 12 - 1 +7 +4 -12 = **- 24**
 
 **Pozostałe pary wierszy:**
@@ -430,26 +447,25 @@ Czyli suma w1-w5: - 12 +6 - 12 - 1 +0 +5 +4 - 12 - 1 +7 +4 -12 = **- 24**
 - suma **w2-w3** = **- 21**
 - suma **w2-w4** = **- 13**
 - suma **w2-w5** = **- 29**
-    - suma **w3-w4** = **- 59**
-    - suma **w3-w5** = **- 48**
-    - suma **w4-w5** = **- 73**
+  - suma **w3-w4** = **- 59**
+  - suma **w3-w5** = **- 48**
+  - suma **w4-w5** = **- 73**
 
 **Wszystkie elementy częściowe dopasowania:**
 
 - w1-w2 = 43
 - w1-w3 = 3
 - w1-w4 = 5
-    - w1-w5 = - 24
-    - w2-w3 = - 21
-    - w2-w4 = - 13
-       - w2-w5 = - 29
-       - w3-w4 = - 59
-       - w3-w5 = - 48
-          - w4-w5 = - 73
+  - w1-w5 = - 24
+  - w2-w3 = - 21
+  - w2-w4 = - 13
+    - w2-w5 = - 29
+    - w3-w4 = - 59
+    - w3-w5 = - 48
+      - w4-w5 = - 73
 
 Zatem: **SP** = 43 + 3 + 5 - 24 - 21 - 13 - 29 - 59 - 48 - 73 = **- 216**. To jest formalnie poprawne dla konwencji
 BLAST/NCBI.
-
 
 Wracamy do DNA:
 
@@ -472,14 +488,15 @@ Tylko tyle i aż tyle. Ale uwaga, z tego wynika sposób generowania rozwiązań 
 
 - musimy wygenerować tyle wierszy ile jest sekwencji do dopasowania
 - wiersz opisujący daną sekwencję wejściową musi mieć dokładnie tyle jedynek, ile dane
-    sekwencja ma liter.
+  sekwencja ma liter.
 
 Kolumny w tej macierzy możemy sobie nazywać jak chcemy, np. ruchami. W tym znaczenie ruch to coś,
 co prowadzi nas dalej, do konsktrukcji rozwiązania dopuszczalnego. Rozwiązanie dopuszczalne jest
 własnie zdefiniowane tymi dwoma powyższymi punktami nad tym akapitem – tyle wierszy ile sekwencji
-+ liczba jedynek w wierszu = liczba liter w danej sekwencji (reszta to zera). Należy tutaj zwrócić uwagę
-na to, że kolumna składająca się z samych zer nie ma wielkiego sensu – można by ją dodać wiele razy,
-ale poza obniżaniem wyniku funkcji celu nie służyłaby ona do niczego pozytywnego...
+
+- liczba jedynek w wierszu = liczba liter w danej sekwencji (reszta to zera). Należy tutaj zwrócić uwagę
+  na to, że kolumna składająca się z samych zer nie ma wielkiego sensu – można by ją dodać wiele razy,
+  ale poza obniżaniem wyniku funkcji celu nie służyłaby ona do niczego pozytywnego...
 
 Należy też zauważyć, że każdy ruch można oceniać (prawie) niezależnie. „Prawie” ponieważ dla
 określania gapopen / gapextend w aktualnie analizowanej kolumnie, musimy odwołać się do tego co jest w
@@ -495,7 +512,6 @@ Porównanie gap’ów (w2 z w3) jest za zaro punktów. Czyli - 2 - 1 +1 +0 - 2 �
 w2-w3, w2-w4, w3-w4). Każdy ruch/kolumnę można więc oceniać niezależnie kolumna po kolumnie,
 tak jak na poprzedniej stronie było pokazane, jak wiersz po wierszu liczyliśmy funkcję celu/jakość
 dopasowania.
-
 
 Wracając do przykładu z aminokwasami:
 
@@ -518,6 +534,7 @@ Macierz binarna:
 1 0 1 1 1 1 0 0 1 1 0 1
 0 1 0 0 1 1 1 0 0 1 1 0
 ```
+
 **Wersja 1: prosta kara za gap = - 4**
 
 Dla przykładu aminokwasowego rozważmy kolumny siódmą i ósmą. W kolumnie siódmej mamy układ
@@ -550,7 +567,6 @@ w3 z w4 przerwa „przechodzi na drugą stronę”, więc także liczy się jako
 
 Każde z tych czterech porównań daje więc **- 12 punktów** , łącznie **- 48 punktów** , a zatem suma dla
 kolumny siódmej wynosi **+24 - 48 = - 24**. W kolumnie ósmej mamy układ **„G G G – – ”**. Trzy porównania
-
 
 G-G (w1 z w2, w1 z w3, w2 z w3) dają razem **+18 punktów**. Dla par w1 z w4, w2 z w4 oraz w3 z w4 luka
 w w4 trwa już od kolumny siódmej, więc są to trzy przypadki **gapextend** , po **- 1 punkcie** każdy. Natomiast
@@ -592,7 +608,6 @@ wstawienia luk i kolejne decyzje wyrównania. Inne traktują ACO jako metodę ud
 istniejącego dopasowania **,** na przykład wygenerowanego wcześniej przez heurystykę. Są też warianty
 hybrydowe, w których ACO działa jako lokalne przeszukiwanie osadzone w większym algorytmie, na
 przykład genetycznym.
-
 
 Najbardziej intuicyjna interpretacja wydaje się następująca. Wyobraźmy sobie, że mrówka buduje
 dopasowanie kolumna po kolumnie. W każdej chwili musi zdecydować, które sekwencje „przesunąć”
@@ -637,7 +652,6 @@ heurystykę. Innymi słowy, algorytm nie przeszukuje przestrzeni ślepo, ale te�
 jednym wariancie dopasowania. Dobrze nadaje się więc do pokazania studentom, jak biologiczny
 problem można zamienić w problem optymalizacyjny, a następnie rozwiązywać go przez iteracyjne
 konstruowanie i ocenianie rozwiązań.
-
 
 W najprostszej wersji opis algorytmu ACO dla MSA można streścić następująco: najpierw definiujemy
 sposób reprezentacji dopasowania, następnie wiele mrówek konstruuje własne kandydackie
@@ -687,7 +701,6 @@ innym miejscu. Taki operator generuje nowe konfiguracje przerw których wcześni
 Druga dość “naturalna” mutacja to tzw. _block shuffling_ albo prościej: przesuwanie bloków przerw lub
 bloków znaków w lewo albo w prawo. Idea jest taka, że po wstawieniu przerwy optymalny układ często
 
-
 różni się tylko tym, że blok powinien być przesunięty o 1–3 kolumny. Podsumowując taki sposób:
 mutacja nie zmienia biologicznej treści sekwencji, tylko zmienia położenie przerw lub całych lokalnych
 fragmentów dopasowania.
@@ -695,15 +708,15 @@ fragmentów dopasowania.
 Nadają się tutaj takie mutacje jak na przykład:
 
 - **Shift mutation** : wybieramy jedną przerwę albo blok przerw w danym wierszu i przesuwamy go o
-    jedną kolumnę w lewo lub prawo, jeśli nie zmienia to kolejności znaków.
+  jedną kolumnę w lewo lub prawo, jeśli nie zmienia to kolejności znaków.
 - **Merge/split mutation** : dwa sąsiednie bloki przerw łączymy w jeden, albo odwrotnie: duży blok
-    dzielimy na dwa mniejsze.
+  dzielimy na dwa mniejsze.
 - **Column cleanup mutation** : usuwamy pełne kolumny przerw (to nawet nie mutacja, tylko
-    korekta rozwiązania) lub kolumny prawie puste, a następnie naprawiamy długości wierszy. Taki
-    zestaw jest dość praktyczny, bo lokalnie eksploruje przestrzeń rozwiązań bez gwałtownego
-    niszczenia dobrych fragmentów dopasowania. Ogólna idea „gap-oriented mutations” jest
-    zgodna z kierunkiem rozwoju operatorów w GA dla MSA, gdzie mutacje projektuje się wokół
-    przerw i bloków, a nie wokół pojedynczych liter.
+  korekta rozwiązania) lub kolumny prawie puste, a następnie naprawiamy długości wierszy. Taki
+  zestaw jest dość praktyczny, bo lokalnie eksploruje przestrzeń rozwiązań bez gwałtownego
+  niszczenia dobrych fragmentów dopasowania. Ogólna idea „gap-oriented mutations” jest
+  zgodna z kierunkiem rozwoju operatorów w GA dla MSA, gdzie mutacje projektuje się wokół
+  przerw i bloków, a nie wokół pojedynczych liter.
 
 Bardzo ważny element techniczny to naprawa rozwiązania po krzyżowaniu (lub mutacji). Po każdym
 operatorze sprawdzić trzy rzeczy:
@@ -711,16 +724,15 @@ operatorze sprawdzić trzy rzeczy:
 1. Upewnić się, że w każdym wierszu znaki występują w poprawnej kolejności.
 2. Usunąć pełne kolumny przerw.
 3. Ewentualnie przeliczyć i skompresować dopasowanie do kanonicznej postaci. To nie jest
-    kosmetyka tylko warunek sensownego działania GA. Już w reprezentacjach z literatury pojawia
-    się założenie, że alignment nie powinien zawierać pełnych kolumn przerw albo że takie kolumny
-    są tylko technicznym artefaktem reprezentacji i należy je usuwać.
+   kosmetyka tylko warunek sensownego działania GA. Już w reprezentacjach z literatury pojawia
+   się założenie, że alignment nie powinien zawierać pełnych kolumn przerw albo że takie kolumny
+   są tylko technicznym artefaktem reprezentacji i należy je usuwać.
 
 **Selekcja** rodziców może być zwykła: turniejowa albo rankingowa, albo jeszcze inna, np. ruletka.
 
 GA dla MSA działa na całych dopasowaniach jako osobnikach; krzyżowanie miesza dobre bloki kolumn
 z dwóch rodziców, a mutacja lokalnie przesuwa i rekonfiguruje przerwy, po czym najlepsze
 dopasowania przechodzą do następnych generacji oceniane selekcją według funkcji celu.
-
 
 ## 4. Specyfikacja projektu/sprawozdanie
 
@@ -765,7 +777,6 @@ techniczny opis. Powinny się tam znaleźć:
 - warunek stopu,
 - lista najważniejszych parametrów.
 
-
 Dla ACO interesujące będą zwłaszcza: liczba mrówek, sposób przechowywania feromonu, parowanie,
 heurystyka lokalna, reguła wyboru ruchu. Dla GA: reprezentacja chromosomu, sposób tworzenia
 populacji początkowej, selekcja, krzyżowanie, mutacja, elityzm, itd. Ta część ma pokazać, że zespół
@@ -808,7 +819,6 @@ na wynik. Przykładowo dla **ACO** :
 - liczba iteracji.
 
 Dla **GA** :
-
 
 - liczność populacji,
 - prawdopodobieństwo mutacji,
@@ -854,7 +864,6 @@ To nie są wartości „jedynie słuszne”, tylko rekomendacja. Chodzi o to, ab
 pewną optymalizację, ale żeby cały pakiet testów był jeszcze realny do przeprowadzenia.
 
 **Wariant białkowy.** Dla wersji rozszerzonej proponuję:
-
 
 - 5 – 8 sekwencji,
 - długości około 30–100 aminokwasów,
@@ -904,7 +913,6 @@ Przykłady:
 - przebieg zbieżności w czasie lub po iteracjach,
 - tabela średni wynik / najlepszy wynik / odchylenie / czas.
 
-
 Dobrze, jeśli dla każdego wykresu będzie jasno napisane:
 
 - jaki był zbiór instancji,
@@ -933,8 +941,7 @@ W praktyce:
 - na ocenę **3 – 3.5** wystarczy działający program i podstawowy raport,
 - na **4 – 4.5** potrzebne będą już sensowne testy parametrów i poprawna analiza wyników,
 - na **5.0** oczekuję wersji białkowej albo wyraźnie ambitniejszej metodologii eksperymentów,
-    najlepiej z bardzo dobrą analizą oraz starannym porównaniem klas instancji.
+  najlepiej z bardzo dobrą analizą oraz starannym porównaniem klas instancji.
 
 Lepiej zrobić mniejszy zakres ale porządnie, niż próbować rozwiązywać bardzo duże instancje bez
 sensownej analizy.
-

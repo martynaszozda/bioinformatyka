@@ -38,9 +38,14 @@ def run_experiment(fasta_file, seq_type, out_csv, num_ants, iterations, alpha, b
     return score
 
 def run_all_sweeps():
-    datasets_dir = "../datasets"
-    results_file = "../results.csv"
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    datasets_dir = os.path.join(base_path, "..", "datasets")
+    results_file = os.path.join(base_path, "..", "results.csv")
     
+    with open(results_file, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Dataset', 'SeqType', 'NumAnts', 'Iterations', 'Alpha', 'Beta', 'Rho', 'Score', 'Time(s)'])
+
     files = glob.glob(f"{datasets_dir}/*.fasta")
     if not files:
         print(f"No datasets found in {datasets_dir}")
@@ -50,16 +55,26 @@ def run_all_sweeps():
     test_files = [f for f in files if 'small' in f and 'medium' in f]
     if not test_files:
         test_files = files[:2]
+
+    num_repeats = 10
+
+    for f_path in test_files:
+        f_name = os.path.basename(f_path)
+        seq_type = 'DNA' if 'dna' in f_name.lower() else 'PROTEIN'
         
-    for f in test_files:
-        seq_type = 'DNA' if 'dna' in os.path.basename(f) else 'PROTEIN'
-        print(f"\\nSweeping parameters for {os.path.basename(f)}")
-        # Sweeping number of ants
         for ants in [5, 10]:
-            run_experiment(f, seq_type, results_file, num_ants=ants, iterations=10, alpha=1.0, beta=1.0, rho=0.1)
-        # Sweeping rho
-        for rho in [0.05, 0.2]:
-            run_experiment(f, seq_type, results_file, num_ants=10, iterations=10, alpha=1.0, beta=1.0, rho=rho)
+            for r in range(num_repeats):
+                run_experiment(f_path, seq_type, results_file, 
+                               num_ants=ants, iterations=20, 
+                               alpha=1.0, beta=1.0, rho=0.1)
+                print(end="", flush=True)
+
+        for r_val in [0.05, 0.2]:
+            for r in range(num_repeats):
+                run_experiment(f_path, seq_type, results_file, 
+                               num_ants=10, iterations=20, 
+                               alpha=1.0, beta=1.0, rho=r_val)
+                print(end="", flush=True)
 
 if __name__ == '__main__':
     run_all_sweeps()

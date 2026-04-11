@@ -55,7 +55,6 @@ class ACO_MSA:
                 if score > self.best_score:
                     self.best_score = score
                     self.best_alignment = alignment
-                    print(f"Iteration {it}: New best score {score}")
             
             self._update_pheromones(ant_paths)
         
