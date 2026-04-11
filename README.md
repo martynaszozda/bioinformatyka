@@ -938,4 +938,3 @@ W praktyce:
 Lepiej zrobić mniejszy zakres ale porządnie, niż próbować rozwiązywać bardzo duże instancje bez
 sensownej analizy.
 
-
