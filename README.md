@@ -1,5 +1,6 @@
 # Multiple Sequence Alignment
 
+
 wersja 1.0. 1 21. 03 .20 26
 
 ## 1. Wprowadzenie do problemu dopasowania wielu sekwencji
