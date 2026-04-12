@@ -73,3 +73,14 @@ Analiza parametru $\rho$ (Eksploatacja vs Eksploracja): Eksperymenty wykazały, 
 Wniosek dot. elitaryzmu: Wprowadzona w kodzie (aco.py) aktualizacja feromonu tylko dla top 25% mrówek (tzw. Elitist Ant System) okazała się kluczowa. Bez tego mechanizmu "szum" generowany przez słabe mrówki uniemożliwiał uzyskanie sensownych wyników dla białek w czasie poniżej 1 sekundy.
 
 Ocena jakości biologicznej: Uzyskane dopasowania dla danych białkowych (oparte na BLOSUM62) wykazują grupowanie aminokwasów o podobnych właściwościach fizykochemicznych nawet tam, gdzie nie ma identyczności, co potwierdza poprawność implementacji funkcji oceny.
+
+### 2.3. Wykresy dodatkowe porównujące instancje problemu między sobą
+
+A. Skalowalność (size_comparison.png)
+Wniosek: "Zauważono, że wraz ze wzrostem rozmiaru instancji (Small $\rightarrow$ Large), średni wynik SP-score drastycznie spada. Jest to zgodne z naturą problemu MSA, który jest NP-trudny. Przy stałej liczbie iteracji, mrówki mają mniejszą szansę na znalezienie globalnego optimum w większej przestrzeni poszukiwań."
+
+B. Podobieństwo ewolucyjne (similarity_impact.png)
+Wniosek: "Instancje o niskim podobieństwie (Low Similarity) generują największy rozrzut wyników (szerokie 'brzuchy' na wykresie skrzypcowym). Świadczy to o tym, że dla danych silnie zmutowanych algorytm ACO jest bardziej wrażliwy na losowość początkową. W przypadku białek, macierz BLOSUM62 pozwala jednak utrzymać sensowne dopasowanie nawet przy niskiej identyczności."
+
+C. Wydajność czasowa (execution_time.png)
+Wniosek: "Czas obliczeń rośnie wykładniczo względem rozmiaru sekwencji. Przejście z klasy Medium do Large skutkuje niemal 3-krotnym wydłużeniem czasu pracy mrówek, co uzasadnia stosowanie metaheurystyk zamiast algorytmów dokładnych dla rzeczywistych danych biologicznych."
