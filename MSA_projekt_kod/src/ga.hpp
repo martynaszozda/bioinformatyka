@@ -1,11 +1,3 @@
-// ============================================================================
-//  ga.hpp
-//  Algorytm genetyczny dla MSA.
-//
-//  Budzet obliczeniowy mierzymy LICZBA OCEN FUNKCJI CELU (evaluations), a nie
-//  liczba generacji. Dzieki temu porownania miedzy roznymi wielkosciami populacji
-//  sa uczciwe (kazda konfiguracja dostaje tyle samo wywolan funkcji celu).
-// ============================================================================
 #pragma once
 #include "align.hpp"
 #include "scoring.hpp"
@@ -23,7 +15,7 @@ struct GAParams {
     int    elitism    = 2;
     int    tournament = 3;
     long   maxEvals   = 40000;   // budzet: liczba ocen funkcji celu
-    int    maxGen     = 100000;  // twardy limit generacji (zwykle nieaktywny)
+    int    maxGen     = 100000;
 };
 
 struct GAResult {
@@ -36,7 +28,7 @@ struct GAResult {
     std::vector<long> histEvals;  // skumulowane oceny po kazdej generacji
 };
 
-// selekcja turniejowa: zwraca indeks zwyciezcy
+// selekcja turniejowa
 inline int tournamentPick(const std::vector<long>& fit, int tsize, RNG& rng) {
     std::uniform_int_distribution<int> di(0, (int)fit.size() - 1);
     int best = di(rng);
@@ -71,20 +63,15 @@ inline GAResult runGA(const std::vector<std::string>& seqs,
     std::uniform_real_distribution<double> u01(0.0, 1.0);
 
     while (R.evals < P.maxEvals && R.gens < P.maxGen) {
-        // posortuj indeksy malejaco po fitness (dla elityzmu)
         std::vector<int> ord(N);
         for (int i = 0; i < N; ++i) ord[i] = i;
         std::sort(ord.begin(), ord.end(), [&](int a, int b){ return fit[a] > fit[b]; });
-
         std::vector<Align> next; next.reserve(N);
         std::vector<long>  nfit; nfit.reserve(N);
-
-        // elityzm: przepisz najlepszych bez zmian (bez ponownej oceny)
         for (int e = 0; e < P.elitism && e < N; ++e) {
             next.push_back(pop[ord[e]]);
             nfit.push_back(fit[ord[e]]);
         }
-        // reszta przez selekcje + krzyzowanie + mutacje
         while ((int)next.size() < N) {
             int a = tournamentPick(fit, P.tournament, rng);
             Align child;
@@ -95,7 +82,7 @@ inline GAResult runGA(const std::vector<std::string>& seqs,
                 child = pop[a];
             }
             if (u01(rng) < P.pMut) mutate(child, rng);
-            else repair(child); // kopie tez normalizujemy
+            else repair(child);
             long f = spScore(child, sc);
             R.evals += 1;
             next.push_back(std::move(child));
@@ -114,4 +101,4 @@ inline GAResult runGA(const std::vector<std::string>& seqs,
     return R;
 }
 
-} // namespace msa
+}
