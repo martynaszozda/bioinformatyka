@@ -1,0 +1,71 @@
+// ============================================================================
+//  matrices.hpp
+//  Macierze podstawien: pelny BLOSUM62 (do eksperymentow bialkowych) oraz
+//  uproszczona tablica z instrukcji (do walidacji odtwarzajacej przyklady).
+// ============================================================================
+#pragma once
+#include "scoring.hpp"
+#include <string>
+
+namespace msa {
+
+// --- Pelny BLOSUM62 dla 20 standardowych aminokwasow ---
+// Kolejnosc: A R N D C Q E G H I L K M F P S T W Y V
+inline Scoring makeBlosum62(int gopen, int gext) {
+    Scoring s;
+    s.mode = ScoreMode::PROTEIN;
+    s.gopen = gopen; s.gext = gext;
+    const std::string order = "ARNDCQEGHILKMFPSTWYV";
+    for (int i = 0; i < (int)order.size(); ++i)
+        s.aaIndex[(unsigned char)order[i]] = i;
+    s.sub = {
+    //   A   R   N   D   C   Q   E   G   H   I   L   K   M   F   P   S   T   W   Y   V
+        { 4,-1,-2,-2, 0,-1,-1, 0,-2,-1,-1,-1,-1,-2,-1, 1, 0,-3,-2, 0}, // A
+        {-1, 5, 0,-2,-3, 1, 0,-2, 0,-3,-2, 2,-1,-3,-2,-1,-1,-3,-2,-3}, // R
+        {-2, 0, 6, 1,-3, 0, 0, 0, 1,-3,-3, 0,-2,-3,-2, 1, 0,-4,-2,-3}, // N
+        {-2,-2, 1, 6,-3, 0, 2,-1,-1,-3,-4,-1,-3,-3,-1, 0,-1,-4,-3,-3}, // D
+        { 0,-3,-3,-3, 9,-3,-4,-3,-3,-1,-1,-3,-1,-2,-3,-1,-1,-2,-2,-1}, // C
+        {-1, 1, 0, 0,-3, 5, 2,-2, 0,-3,-2, 1, 0,-3,-1, 0,-1,-2,-1,-2}, // Q
+        {-1, 0, 0, 2,-4, 2, 5,-2, 0,-3,-3, 1,-2,-3,-1, 0,-1,-3,-2,-2}, // E
+        { 0,-2, 0,-1,-3,-2,-2, 6,-2,-4,-4,-2,-3,-3,-2, 0,-2,-2,-3,-3}, // G
+        {-2, 0, 1,-1,-3, 0, 0,-2, 8,-3,-3,-1,-2,-1,-2,-1,-2,-2, 2,-3}, // H
+        {-1,-3,-3,-3,-1,-3,-3,-4,-3, 4, 2,-3, 1, 0,-3,-2,-1,-3,-1, 3}, // I
+        {-1,-2,-3,-4,-1,-2,-3,-4,-3, 2, 4,-2, 2, 0,-3,-2,-1,-2,-1, 1}, // L
+        {-1, 2, 0,-1,-3, 1, 1,-2,-1,-3,-2, 5,-1,-3,-1, 0,-1,-3,-2,-2}, // K
+        {-1,-1,-2,-3,-1, 0,-2,-3,-2, 1, 2,-1, 5, 0,-2,-1,-1,-1,-1, 1}, // M
+        {-2,-3,-3,-3,-2,-3,-3,-3,-1, 0, 0,-3, 0, 6,-4,-2,-2, 1, 3,-1}, // F
+        {-1,-2,-2,-1,-3,-1,-1,-2,-2,-3,-3,-1,-2,-4, 7,-1,-1,-4,-3,-2}, // P
+        { 1,-1, 1, 0,-1, 0, 0, 0,-1,-2,-2, 0,-1,-2,-1, 4, 1,-3,-2,-2}, // S
+        { 0,-1, 0,-1,-1,-1,-1,-2,-2,-1,-1,-1,-1,-2,-1, 1, 5,-2,-2, 0}, // T
+        {-3,-3,-4,-4,-2,-2,-3,-2,-2,-3,-2,-3,-1, 1,-4,-3,-2,11, 2,-3}, // W
+        {-2,-2,-2,-3,-2,-1,-2,-3, 2,-1,-1,-2,-1, 3,-3,-2,-2, 2, 7,-1}, // Y
+        { 0,-3,-3,-3,-1,-2,-2,-3,-3, 3, 1,-2, 1,-1,-2,-2, 0,-3,-1, 4}  // V
+    };
+    return s;
+}
+
+// --- Uproszczona tablica z instrukcji (A C G N P S T) ---
+// Sluzy WYLACZNIE do walidacji: odtwarza dokladnie przyklady SP=85 i SP=-216.
+// Tryb PROTEIN_SIMPLE: w wersji 1 luka jest karana stala (gopen), bez rozroznienia
+// open/extend; w wersji 2 uzywamy gopen/gext jak zwykle.
+inline Scoring makeSimpleProtein(int gopen, int gext) {
+    Scoring s;
+    s.mode = ScoreMode::PROTEIN; // uzywamy zwyklej logiki afinicznej
+    s.gopen = gopen; s.gext = gext;
+    const std::string order = "ACGNPST";
+    for (int i = 0; i < (int)order.size(); ++i)
+        s.aaIndex[(unsigned char)order[i]] = i;
+    s.sub = {
+    //   A   C   G   N   P   S   T
+        { 4, 0, 0,-2,-1, 1, 0}, // A
+        { 0, 9,-3,-3,-3,-1,-1}, // C
+        { 0,-3, 6, 0,-2, 0,-2}, // G
+        {-2,-3, 0, 6,-2, 1, 0}, // N
+        {-1,-3,-2,-2, 7,-1,-1}, // P
+        { 1,-1, 0, 1,-1, 4, 1}, // S
+        { 0,-1,-2, 0,-1, 1, 5}  // T
+    };
+    return s;
+}
+
+} // namespace msa

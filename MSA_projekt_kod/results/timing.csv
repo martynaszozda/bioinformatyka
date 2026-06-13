@@ -1,0 +1,5 @@
+klasa,budzet_evals,sredni_czas_s
+szSmall,60000,.243
+szMed,60000,.821
+szLarge,60000,2.017
+protSet,50000,.249
