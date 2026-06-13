@@ -1,15 +1,3 @@
-// ============================================================================
-//  align.hpp
-//  Reprezentacja dopasowania i operatory genetyczne.
-//
-//  REPREZENTACJA: osobnik = pelne dopasowanie MSA = wektor k napisow rownej
-//  dlugosci L, gdzie kazdy napis to oryginalna sekwencja z wstawionymi lukami '-'.
-//  Niezmiennik: po usunieciu luk wiersz i musi byc rowny sekwencji wejsciowej i.
-//
-//  Wszystkie operatory zachowuja ten niezmiennik (kolejnosc liter w wierszu),
-//  a funkcja repair() dodatkowo: wyrownuje dlugosci wierszy i usuwa kolumny
-//  zlozone z samych luk (zgodnie z instrukcja – takie kolumny to artefakt).
-// ============================================================================
 #pragma once
 #include "scoring.hpp"
 #include <string>
@@ -34,7 +22,7 @@ inline void padToEqual(Align& A) {
     for (auto& r : A) if (r.size() < L) r.append(L - r.size(), GAP);
 }
 
-// Usun kolumny zlozone wylacznie z luk.
+// Usun kolumny zlozone wylacznie z luk
 inline void removeAllGapColumns(Align& A) {
     if (A.empty()) return;
     size_t L = A[0].size();
@@ -53,12 +41,12 @@ inline void removeAllGapColumns(Align& A) {
 
 // Pelna naprawa rozwiazania po operatorach.
 inline void repair(Align& A) {
-    padToEqual(A);
-    removeAllGapColumns(A);
+    padToEqual(A); //wyrównanie wierszy do najdłuższego, dodając przerwy z prawej
+    removeAllGapColumns(A);  //usunięcie pustych kolumn (same przerwy)
     padToEqual(A);
 }
 
-// Sprawdzenie poprawnosci wzgledem sekwencji wejsciowych (do testow).
+// Sprawdzenie poprawnosci wzgledem sekwencji wejsciowych (do testow)
 inline bool isValid(const Align& A, const std::vector<std::string>& seqs) {
     if (A.size() != seqs.size()) return false;
     size_t L = alnLen(A);
@@ -77,11 +65,7 @@ inline bool isValid(const Align& A, const std::vector<std::string>& seqs) {
     return true;
 }
 
-// ---------------------------------------------------------------------------
-//  INICJALIZACJA: losowe poprawne dopasowanie.
-//  Wybieramy wspolna dlugosc L (>= najdluzsza sekwencja, z niewielkim luzem),
-//  a dla kazdej sekwencji losujemy pozycje liter sposrod L kolumn.
-// ---------------------------------------------------------------------------
+//inicjalizacja
 inline Align randomAlign(const std::vector<std::string>& seqs, RNG& rng, double slack = 1.30) {
     size_t maxLen = 0; for (auto& s : seqs) maxLen = std::max(maxLen, s.size());
     size_t L = std::max<size_t>(maxLen + 1, (size_t)(maxLen * slack));
@@ -102,13 +86,7 @@ inline Align randomAlign(const std::vector<std::string>& seqs, RNG& rng, double 
     return A;
 }
 
-// ---------------------------------------------------------------------------
-//  KRZYZOWANIE jednopunktowe (na kolumnach), z zachowaniem kolejnosci liter.
-//  Dla kazdego wiersza: prefiks z rodzica 1 (kolumny [0,c)) zawiera pewna liczbe
-//  liter n_i (pierwsze n_i liter sekwencji i). Sufiks pobieramy z rodzica 2 tak,
-//  aby zawieral pozostale litery (od n_i do konca) – w tej samej kolejnosci.
-//  Po sklejeniu wiersze moga miec rozne dlugosci -> repair() wyrownuje.
-// ---------------------------------------------------------------------------
+// krzyżowanie
 inline Align crossoverOnePoint(const Align& P1, const Align& P2, RNG& rng) {
     size_t L1 = alnLen(P1);
     if (L1 < 2) return P1;
@@ -118,7 +96,6 @@ inline Align crossoverOnePoint(const Align& P1, const Align& P2, RNG& rng) {
     for (size_t i = 0; i < P1.size(); ++i) {
         std::string prefix = P1[i].substr(0, c);
         int ni = countLetters(prefix);
-        // znajdz w P2[i] pozycje p tak, ze P2[i][0,p) zawiera dokladnie ni liter
         int cnt = 0; size_t p = 0;
         const std::string& r2 = P2[i];
         while (p < r2.size() && cnt < ni) { if (r2[p] != GAP) ++cnt; ++p; }
@@ -129,18 +106,13 @@ inline Align crossoverOnePoint(const Align& P1, const Align& P2, RNG& rng) {
     return child;
 }
 
-// ---------------------------------------------------------------------------
-//  MUTACJE (zorientowane na luki – zgodnie z instrukcja).
-// ---------------------------------------------------------------------------
-
-// M1: shift – przesun pojedyncza litere o 1 kolumne (zamiana z sasiednia luka).
+// mutacje
 inline void mutShift(Align& A, RNG& rng) {
     size_t k = A.size(), L = alnLen(A);
     if (L < 2) return;
     std::uniform_int_distribution<size_t> dr(0, k - 1);
     size_t i = dr(rng);
-    // zbierz granice litera|luka
-    std::vector<std::pair<size_t,size_t>> sw; // (pozycja luki, pozycja litery)
+    std::vector<std::pair<size_t,size_t>> sw;
     for (size_t c = 0; c + 1 < L; ++c) {
         if (A[i][c] == GAP && A[i][c+1] != GAP) sw.push_back({c, c+1});
         if (A[i][c] != GAP && A[i][c+1] == GAP) sw.push_back({c+1, c});
@@ -150,15 +122,13 @@ inline void mutShift(Align& A, RNG& rng) {
     std::swap(A[i][pr.first], A[i][pr.second]);
 }
 
-// M2: relokacja bloku luk – wytnij maksymalny blok luk w losowym wierszu
-//     i wstaw blok luk tej samej dlugosci w innym losowym miejscu (ten sam wiersz).
+// M2: relokacja bloku luk
 inline void mutGapBlockMove(Align& A, RNG& rng) {
     size_t k = A.size(), L = alnLen(A);
     if (L < 2) return;
     std::uniform_int_distribution<size_t> dr(0, k - 1);
     size_t i = dr(rng);
-    // znajdz bloki luk
-    std::vector<std::pair<size_t,size_t>> blocks; // [start,len]
+    std::vector<std::pair<size_t,size_t>> blocks;
     size_t c = 0;
     while (c < L) {
         if (A[i][c] == GAP) {
@@ -168,32 +138,25 @@ inline void mutGapBlockMove(Align& A, RNG& rng) {
     }
     if (blocks.empty()) return;
     auto blk = blocks[std::uniform_int_distribution<size_t>(0, blocks.size()-1)(rng)];
-    // wez litery wiersza (bez luk), potem wstaw blok luk w nowym miejscu
     std::string letters; for (char ch : A[i]) if (ch != GAP) letters.push_back(ch);
     int n = (int)letters.size();
     int glen = (int)blk.second;
-    // nowa pozycja wstawienia sposrod 0..n
     int insPos = std::uniform_int_distribution<int>(0, n)(rng);
     std::string row;
     row.reserve(L);
     for (int j = 0; j < insPos; ++j) row.push_back(letters[j]);
     row.append(glen, GAP);
     for (int j = insPos; j < n; ++j) row.push_back(letters[j]);
-    // dopelnij/utnij do dlugosci L (zachowujac wszystkie litery; nadmiar luk z prawej)
     if (row.size() < L) row.append(L - row.size(), GAP);
-    // jesli za dlugi, repair i tak wyrownia po usunieciu pustych kolumn
     A[i] = row;
 }
 
-// M3: gap insertion – wstaw nowa luke w losowym podzbiorze wierszy, a w
-//     pozostalych wstaw luke w innym losowym miejscu (wyrownanie dlugosci).
-//     Generuje konfiguracje luk, ktorych wczesniej nie bylo.
+// M3: gap insertion – nowa luka w losowym podzbiorze wierszy, a w pozostalych wstaw luke w innym losowym miejscu (wyrownanie dlugosci)
 inline void mutGapInsertion(Align& A, RNG& rng) {
     size_t k = A.size(), L = alnLen(A);
     if (k < 2) return;
     std::uniform_int_distribution<size_t> dpos(0, L);
     size_t p1 = dpos(rng), p2 = dpos(rng);
-    // losowy niepusty wlasciwy podzbior wierszy
     std::uniform_int_distribution<int> coin(0, 1);
     std::vector<char> inS(k);
     int cntS = 0;
@@ -207,7 +170,7 @@ inline void mutGapInsertion(Align& A, RNG& rng) {
     }
 }
 
-// Zastosuj losowa mutacje (z wagami) do osobnika.
+
 inline void mutate(Align& A, RNG& rng) {
     int r = std::uniform_int_distribution<int>(0, 99)(rng);
     if      (r < 45) mutShift(A, rng);        // 45% drobne przesuniecia
@@ -216,4 +179,5 @@ inline void mutate(Align& A, RNG& rng) {
     repair(A);
 }
 
-} // namespace msa
+}
+
