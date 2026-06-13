@@ -13,7 +13,6 @@ enum class ScoreMode { DNA, PROTEIN, PROTEIN_SIMPLE };
 
 struct Scoring {
     ScoreMode mode = ScoreMode::DNA;
-    // Parametry dla DNA:
     int match    =  1;
     int mismatch = -1;
     // Kary za luki
@@ -21,12 +20,12 @@ struct Scoring {
     int gext     = -1;   // przedluzenie luki
     // Tablica podstawien 
     std::array<int8_t,128> aaIndex;
-    std::vector<std::vector<int>> sub; // macierz podstawien NxN
+    std::vector<std::vector<int>> sub;
 
     Scoring() { aaIndex.fill(-1); }
 };
 
-// Substytucja litera-litera (zaklada, ze oba znaki to NIE luka).
+// Substytucja litera-litera 
 inline int substScore(char x, char y, const Scoring& s) {
     if (s.mode == ScoreMode::DNA) {
         return (x == y) ? s.match : s.mismatch;
