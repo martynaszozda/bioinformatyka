@@ -1,11 +1,3 @@
-// ============================================================================
-//    validate                          – testy poprawnosci funkcji celu
-//    gen <opts>                        – generator instancji testowych
-//    run <plik> <opts>                 – jedno uruchomienie GA na instancji
-//    sweep <param> <plik_csv> <opts>   – test parametru na zbiorze instancji
-//    classes <plik_csv>                – test na różnych klasach instancji
-//    converge <plik_csv> <opts>        – krzywa zbieżnosci (best vs oceny)
-// ============================================================================
 #include "scoring.hpp"
 #include "matrices.hpp"
 #include "align.hpp"
@@ -32,7 +24,6 @@ static Instance readInstance(const std::string& path) {
     std::string line; bool gotMode = false;
     while (std::getline(in, line)) {
         if (line.empty() || line[0] == '#') continue;
-        //  biale znaki
         while (!line.empty() && (line.back()=='\r'||line.back()=='\n'||line.back()==' ')) line.pop_back();
         if (line.empty()) continue;
         if (!gotMode) {
@@ -52,7 +43,6 @@ static void writeInstance(const std::string& path, ScoreMode mode,
     for (auto& s : seqs) out << s << "\n";
 }
 
-// scoring dobrany do trybu instancji + parametrow z linii polecen
 static Scoring scoringFor(ScoreMode mode, int gopen, int gext) {
     if (mode == ScoreMode::PROTEIN) return makeBlosum62(gopen, gext);
     Scoring s; s.mode = ScoreMode::DNA;
@@ -89,7 +79,7 @@ static int cmdValidate() {
 
     std::cout << "== Walidacja 2: bialka, uproszczony BLOSUM, prosta kara gap=-4 ==\n";
     {
-        Scoring s = makeSimpleProtein(-4, -4); // open=extend=-4 => prosta kara
+        Scoring s = makeSimpleProtein(-4, -4);
         std::vector<std::string> A = {
             "AGTCGTAGNPST",
             "ASTCGTAG-PST",
@@ -128,13 +118,7 @@ static int cmdValidate() {
     return failures == 0 ? 0 : 1;
 }
 
-// ---------------------------------------------------------------------------
-//  GENERATOR INSTANCJI
-//  Od sekwencji-przodka tworzymy k sekwencji przez substytucje i indele.
-//  - psub  : prawdopodobienstwo substytucji na pozycje (klasa podobienstwa)
-//  - pind  : prawdopodobienstwo zdarzenia indel na pozycje
-//  - gaplen: typowa dlugosc bloku indel (1 = wiele krotkich, >1 = dlugie bloki)
-// ---------------------------------------------------------------------------
+// generator instancji
 static std::string randSeq(int len, ScoreMode mode, RNG& rng) {
     const std::string dna = "ACGT";
     const std::string aa  = "ARNDCQEGHILKMFPSTWYV";
@@ -155,19 +139,16 @@ static std::string mutateSeq(const std::string& anc, ScoreMode mode,
     std::string out;
     for (size_t i = 0; i < anc.size(); ++i) {
         if (u(rng) < pind) {
-            // zdarzenie indel: usun lub wstaw blok dlugosci ~gaplen
             int len = std::max(1, gaplen);
             if (u(rng) < 0.5) {
-                // delecja: pomin nastepne 'len' znakow przodka
                 i += (len - 1);
                 continue;
             } else {
-                // insercja: dopisz 'len' losowych znakow, potem normalnie znak
                 for (int t = 0; t < len; ++t) out.push_back(al[dch(rng)]);
             }
         }
         char c = anc[i];
-        if (u(rng) < psub) { // substytucja
+        if (u(rng) < psub) {
             char nc; do { nc = al[dch(rng)]; } while (nc == c && al.size() > 1);
             c = nc;
         }
@@ -189,7 +170,6 @@ static std::vector<std::string> genInstance(ScoreMode mode, int k, int ancLen,
 }
 
 static int cmdGen(int argc, char** argv) {
-    // domyslne; nadpisywane flagami --klucz wartosc
     std::map<std::string,std::string> opt;
     for (int i = 2; i + 1 < argc; i += 2)
         if (std::string(argv[i]).rfind("--",0)==0) opt[std::string(argv[i]).substr(2)] = argv[i+1];
@@ -224,9 +204,7 @@ static int cmdGen(int argc, char** argv) {
     return 0;
 }
 
-// ---------------------------------------------------------------------------
-//  RUN – jedno uruchomienie na jednej instancji (podglad).
-// ---------------------------------------------------------------------------
+//uruchomienie na 1 instancji
 static int cmdRun(int argc, char** argv) {
     if (argc < 3) { std::cerr << "run <plik> [--flagi]\n"; return 1; }
     Instance inst = readInstance(argv[2]);
@@ -259,9 +237,6 @@ static int cmdRun(int argc, char** argv) {
     return 0;
 }
 
-// ---------------------------------------------------------------------------
-//  Pomocnik: zbierz pliki instancji o danym prefiksie z katalogu.
-// ---------------------------------------------------------------------------
 static std::vector<std::string> collect(const std::string& dir, const std::string& prefix) {
     std::vector<std::string> out;
     for (auto& e : fs::directory_iterator(dir)) {
@@ -272,10 +247,7 @@ static std::vector<std::string> collect(const std::string& dir, const std::strin
     return out;
 }
 
-// ---------------------------------------------------------------------------
-//  SWEEP – test jednego parametru na ZBIORZE instancji, wiele uruchomien.
-//  Wypisuje CSV: param,value,instance,run,init_best,final_best,improvement,gens,evals
-// ---------------------------------------------------------------------------
+//parametry
 static int cmdSweep(int argc, char** argv) {
     if (argc < 4) { std::cerr << "sweep <param> <out.csv> [--flagi]\n"; return 1; }
     std::string param = argv[2];
@@ -292,12 +264,10 @@ static int cmdSweep(int argc, char** argv) {
     int runs = geti("runs",10);
     int gopen = geti("gopen", -2), gext = geti("gext", -1);
 
-    // bazowe parametry
     GAParams base;
     base.popSize=geti("pop",60); base.pCross=getd("pc",0.85); base.pMut=getd("pm",0.30);
     base.elitism=geti("elit",2); base.tournament=geti("tour",3); base.maxEvals=geti("evals",40000);
 
-    // wartosci parametru do przetestowania (lista po przecinku)
     std::vector<std::string> vals;
     { std::stringstream ss(gets("values","")); std::string tok;
       while (std::getline(ss,tok,',')) if(!tok.empty()) vals.push_back(tok); }
@@ -320,7 +290,6 @@ static int cmdSweep(int argc, char** argv) {
                 else if (param=="elit") P.elitism = std::stoi(vs);
                 else if (param=="tour") P.tournament = std::stoi(vs);
                 else { std::cerr<<"Nieznany param "<<param<<"\n"; return 1; }
-                // staly budzet ocen => uczciwe porownanie roznych populacji
                 RNG rng((unsigned)(1000*r + 7));
                 GAResult R = runGA(inst.seqs, sc, P, rng);
                 csv << param << "," << vs << "," << inst.name << "," << r << ","
@@ -334,10 +303,7 @@ static int cmdSweep(int argc, char** argv) {
     return 0;
 }
 
-// ---------------------------------------------------------------------------
-//  CLASSES – test na roznych klasach instancji (prefiksy podane po przecinku).
-//  CSV: class,instance,run,init_best,final_best,improvement,evals
-// ---------------------------------------------------------------------------
+//różne klasy
 static int cmdClasses(int argc, char** argv) {
     if (argc < 3) { std::cerr << "classes <out.csv> [--flagi]\n"; return 1; }
     std::string outcsv = argv[2];
@@ -380,10 +346,7 @@ static int cmdClasses(int argc, char** argv) {
     return 0;
 }
 
-// ---------------------------------------------------------------------------
-//  CONVERGE – usredniona krzywa zbieznosci (best-so-far vs liczba ocen).
-//  CSV: evals,best_mean,best_std  (usrednione po instancjach i uruchomieniach)
-// ---------------------------------------------------------------------------
+//zbieżność
 static int cmdConverge(int argc, char** argv) {
     if (argc < 3) { std::cerr << "converge <out.csv> [--flagi]\n"; return 1; }
     std::string outcsv = argv[2];
@@ -403,19 +366,17 @@ static int cmdConverge(int argc, char** argv) {
     P.maxEvals=geti("evals",40000);
 
     auto files = collect(dir, prefix);
-    // siatka punktow w przestrzeni ocen
     int pts = geti("points",40);
     std::vector<long> grid(pts);
     for (int i=0;i<pts;++i) grid[i] = (long)((double)(i+1)/pts * P.maxEvals);
 
-    std::vector<std::vector<double>> samples(pts); // wartosci best w kazdym punkcie
+    std::vector<std::vector<double>> samples(pts);
     for (auto& f : files) {
         Instance inst = readInstance(f);
         Scoring sc = scoringFor(inst.mode, gopen, gext);
         for (int r=0;r<runs;++r){
             RNG rng((unsigned)(1000*r+7));
             GAResult R = runGA(inst.seqs, sc, P, rng);
-            // dla kazdego punktu siatki znajdz best-so-far przy <= grid[i] ocenach
             int gi = 0;
             for (int i=0;i<pts;++i){
                 while (gi+1 < (int)R.histEvals.size() && R.histEvals[gi+1] <= grid[i]) ++gi;
@@ -435,7 +396,6 @@ static int cmdConverge(int argc, char** argv) {
     return 0;
 }
 
-// ---------------------------------------------------------------------------
 int main(int argc, char** argv) {
     if (argc < 2) {
         std::cerr << "Uzycie: " << argv[0]
