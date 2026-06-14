@@ -1,16 +1,10 @@
-// ============================================================================
-//  matrices.hpp
-//  Macierze podstawien: pelny BLOSUM62 (do eksperymentow bialkowych) oraz
-//  uproszczona tablica z instrukcji (do walidacji odtwarzajacej przyklady).
-// ============================================================================
+
 #pragma once
 #include "scoring.hpp"
 #include <string>
 
 namespace msa {
 
-// --- Pelny BLOSUM62 dla 20 standardowych aminokwasow ---
-// Kolejnosc: A R N D C Q E G H I L K M F P S T W Y V
 inline Scoring makeBlosum62(int gopen, int gext) {
     Scoring s;
     s.mode = ScoreMode::PROTEIN;
@@ -44,13 +38,9 @@ inline Scoring makeBlosum62(int gopen, int gext) {
     return s;
 }
 
-// --- Uproszczona tablica z instrukcji (A C G N P S T) ---
-// Sluzy WYLACZNIE do walidacji: odtwarza dokladnie przyklady SP=85 i SP=-216.
-// Tryb PROTEIN_SIMPLE: w wersji 1 luka jest karana stala (gopen), bez rozroznienia
-// open/extend; w wersji 2 uzywamy gopen/gext jak zwykle.
 inline Scoring makeSimpleProtein(int gopen, int gext) {
     Scoring s;
-    s.mode = ScoreMode::PROTEIN; // uzywamy zwyklej logiki afinicznej
+    s.mode = ScoreMode::PROTEIN;
     s.gopen = gopen; s.gext = gext;
     const std::string order = "ACGNPST";
     for (int i = 0; i < (int)order.size(); ++i)
@@ -68,4 +58,4 @@ inline Scoring makeSimpleProtein(int gopen, int gext) {
     return s;
 }
 
-} // namespace msa
+}
